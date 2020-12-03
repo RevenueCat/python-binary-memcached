@@ -99,7 +99,7 @@ class Protocol(threading.local):
     COMPRESSION_THRESHOLD = 128
 
     def __init__(self, server, username=None, password=None, compression=None, socket_timeout=None,
-                 pickle_protocol=None, pickler=None, unpickler=None, tls_context=None):
+                 pickle_protocol=None, pickler=None, unpickler=None, tls_context=None, raise_server_errors=True):
         super(Protocol, self).__init__()
         self.server = server
         self._username = username
@@ -115,6 +115,8 @@ class Protocol(threading.local):
         self.tls_context = tls_context
 
         self.reconnects_deferred_until = None
+
+        self.raise_server_errors = raise_server_errors
 
         if not server.startswith('/'):
             self.host, self.port = self.split_host_port(self.server)
@@ -446,7 +448,10 @@ class Protocol(threading.local):
                 return None, None
 
             if status == self.STATUS['server_disconnected']:
-                return None, None
+                if self.raise_server_errors:
+                    raise ConnectionError('Connectivity error reaching memcached server.')
+                else:
+                    return None, None
 
             raise MemcachedException('Code: %d Message: %s' % (status, extra_content), status)
 

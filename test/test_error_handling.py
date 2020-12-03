@@ -164,7 +164,8 @@ class MemcachedTests(unittest.TestCase):
 
         # If the server is offline, get always returns None.
         self._stop_proxy()
-        self.assertTrue(self.client.get('test_key') is None)
+        # self.assertTrue(self.client.get('test_key') is None)
+        self.assertRaises(ConnectionError, self.client.get, 'test_key')
 
         # After the server comes back online, gets will resume.
         self._start_proxy()
@@ -182,7 +183,8 @@ class MemcachedTests(unittest.TestCase):
         # the client to notice that the connection is offline, but not to retry the
         # request.
         self._stop_proxy()
-        self.assertTrue(self.client.get('test_key') is None)
+        # self.assertTrue(self.client.get('test_key') is None)
+        self.assertRaises(ConnectionError, self.client.get, 'test_key')
 
         # If we start the proxy again now, it'll reconnect immediately without any delay.
         self._start_proxy()
@@ -191,19 +193,22 @@ class MemcachedTests(unittest.TestCase):
         # Stop the proxy again, and make another request to cause the client to notice the
         # disconnection.
         self._stop_proxy()
-        self.assertTrue(self.client.get('test_key') is None)
+        # self.assertTrue(self.client.get('test_key') is None)
+        self.assertRaises(ConnectionError, self.client.get, 'test_key')
 
         # Make another request.  As above, the client will attempt a reconnection here, but
         # the server is still offline so it'll fail.  This will cause the retry delay to
         # kick in.
         # After the server comes back online, gets will continue to return None for 0.25
         # second, since delays are still deferred.
-        self.assertTrue(self.client.get('test_key') is None)
+        # self.assertTrue(self.client.get('test_key') is None)
+        self.assertRaises(ConnectionError, self.client.get, 'test_key')
 
         # Start the server.  This time, attempting to read from the server won't cause a
         # connection attempt, because we're still delaying.
         self._start_proxy()
-        self.assertTrue(self.client.get('test_key') is None)
+        # self.assertTrue(self.client.get('test_key') is None)
+        self.assertRaises(ConnectionError, self.client.get, 'test_key')
 
         # Sleep until the retry delay has elapsed, and verify that we connect to the server
         # this time.
